@@ -29,7 +29,7 @@ class MCLH09RefreshButton(CoordinatorEntity, ButtonEntity):
     def __init__(self, coordinator: MCLH09Coordinator, address: str):
         """Initialize the button."""
         super().__init__(coordinator)
-        self._attr_name = "Обновить данные"
+        self._attr_name = "Refresh Data"
         self._attr_unique_id = f"{address}_refresh"
         self._attr_icon = "mdi:refresh"
         
