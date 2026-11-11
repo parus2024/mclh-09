@@ -1,3 +1,4 @@
+[🇷🇺 Русская версия](README.ru.md)
 # 🌱 MCLH-09 Plant Sensor for Home Assistant
 ![MCLH-09 Device Card](images/screenshot.png)
 
