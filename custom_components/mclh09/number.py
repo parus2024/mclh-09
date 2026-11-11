@@ -30,7 +30,7 @@ class MCLH09UpdateInterval(CoordinatorEntity, NumberEntity):
     def __init__(self, coordinator: MCLH09Coordinator, address: str):
         """Initialize the number."""
         super().__init__(coordinator)
-        self._attr_name = "Интервал обновления (мин)"
+        self._attr_name = "Update Interval (min)"
         self._attr_unique_id = f"{address}_update_interval"
         self._attr_native_min_value = 1
         self._attr_native_max_value = 60
