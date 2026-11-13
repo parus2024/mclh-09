@@ -1,4 +1,4 @@
-[🇷🇺 Русская версия](README.ru.md)
+# [🇷🇺 Русская версия](README.ru.md)
 # 🌱 MCLH-09 Plant Sensor for Home Assistant
 ![MCLH-09 Device Card](images/screenshot.png)
 
@@ -6,12 +6,15 @@ A custom integration for Home Assistant that connects directly to **MCLH-09** Bl
 
 ## ✨ Features
 
-*   **Direct Connection:** Works via the built-in Bluetooth adapter (hci0) using the `bleak` library.
-*   **Auto-Discovery:** Home Assistant automatically finds sensors in range.
+*   **Direct Connection:** Works via Home Assistant's native Bluetooth adapter (hci0) or through an **ESP32 Bluetooth Proxy** (recommended for large areas).
+*   **Auto-Discovery:** Home Assistant automatically finds sensors in range and prompts to add them (displaying the MAC address).
 *   **Sensors:** Temperature, Air Humidity, Soil Moisture, Illuminance, and Battery Level.
-*   **Availability:** A binary sensor showing whether the device is online.
-*   **Controls:** A manual refresh button and an adjustable update interval right from the UI.
+*   **RSSI (Signal Strength):** Displays the connection quality to the sensor in dBm.
+*   **Last Updated:** Shows when the sensor last communicated.
+*   **Data Recovery after Restart:** After a Home Assistant reboot, sensors display the last known values until new data arrives.
+*   **Controls:** A manual refresh button (`Refresh Data`) and an adjustable polling interval right from the UI.
 *   **Calibration:** A dropdown list with commands for temperature/soil calibration and factory reset.
+*   **Stability:** Supports multiple sensors with sequential polling, reducing the load on the Bluetooth adapter.
 
 ---
 
