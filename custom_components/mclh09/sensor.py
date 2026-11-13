@@ -30,6 +30,9 @@ async def async_setup_entry(
         MCLH09Sensor(coordinator, address, "soil_moisture", "Soil Moisture", "%", SensorDeviceClass.MOISTURE, 0),
         MCLH09Sensor(coordinator, address, "illuminance", "Illuminance", "lx", SensorDeviceClass.ILLUMINANCE, 0),
         MCLH09Sensor(coordinator, address, "battery", "Battery", "%", SensorDeviceClass.BATTERY, 0),
+        MCLH09Sensor(coordinator, address, "rssi", "RSSI", "dBm", SensorDeviceClass.SIGNAL_STRENGTH, 0),
+        # Сенсор последнего обновления
+        MCLH09LastUpdatedSensor(coordinator, address),
     ]
     async_add_entities(sensors)
 
@@ -62,3 +65,27 @@ class MCLH09Sensor(CoordinatorEntity, SensorEntity):
         if self.coordinator.data is None:
             return None
         return self.coordinator.data.get(self._key)
+
+
+class MCLH09LastUpdatedSensor(CoordinatorEntity, SensorEntity):
+    """Representation of the last update time."""
+
+    def __init__(self, coordinator, address):
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_name = "Last Updated"
+        self._attr_unique_id = f"{address}_last_updated"
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
+        self._attr_icon = "mdi:clock-check-outline"
+        self._attr_update_period = timedelta(seconds=60)
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, address)},
+            "name": f"MCLH-09 {address[-5:]}",
+            "manufacturer": "MCLH",
+            "model": "MCLH-09",
+        }
+
+    @property
+    def native_value(self):
+        """Return the last successful update timestamp."""
+        return self.coordinator.last_success_time
