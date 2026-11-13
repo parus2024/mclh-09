@@ -5,7 +5,6 @@ from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import MCLH09Coordinator
@@ -17,26 +16,26 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up MCLH-09 numbers."""
     coordinator: MCLH09Coordinator = hass.data[DOMAIN][entry.entry_id]
     address = entry.data["address"]
-
     async_add_entities([MCLH09UpdateInterval(coordinator, address)])
 
-
-class MCLH09UpdateInterval(CoordinatorEntity, NumberEntity):
+# Убираем CoordinatorEntity
+class MCLH09UpdateInterval(NumberEntity):
     """Representation of the update interval setting."""
 
     def __init__(self, coordinator: MCLH09Coordinator, address: str):
-        """Initialize the number."""
-        super().__init__(coordinator)
-        self._attr_name = "Update Interval (min)"
+        self.coordinator = coordinator
+        self._address = address
+        self._attr_name = "Update Interval (hours)"
         self._attr_unique_id = f"{address}_update_interval"
         self._attr_native_min_value = 1
-        self._attr_native_max_value = 60
+        self._attr_native_max_value = 24
         self._attr_native_step = 1
         self._attr_mode = NumberMode.BOX
         self._attr_icon = "mdi:timer-outline"
+        # Поле всегда доступно
+        self._attr_available = True
         
         self._attr_device_info = {
             "identifiers": {(DOMAIN, address)},
@@ -47,13 +46,11 @@ class MCLH09UpdateInterval(CoordinatorEntity, NumberEntity):
 
     @property
     def native_value(self) -> float:
-        """Return the current interval in minutes."""
         if self.coordinator.update_interval:
-            return self.coordinator.update_interval.total_seconds() / 60
-        return 5
+            return self.coordinator.update_interval.total_seconds() / 3600
+        return 1
 
     async def async_set_native_value(self, value: float) -> None:
-        """Update the interval."""
-        self.coordinator.update_interval = timedelta(minutes=value)
+        self.coordinator.update_interval = timedelta(hours=value)
         self.async_write_ha_state()
-        _LOGGER.info("Update interval changed to %s minutes", value)
+        _LOGGER.info("Update interval changed to %s hours", value)
