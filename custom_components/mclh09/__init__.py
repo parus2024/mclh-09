@@ -1,5 +1,6 @@
 """The MCLH-09 Plant Sensor integration."""
 import logging
+import asyncio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -19,12 +20,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     coordinator = MCLH09Coordinator(hass, address, name)
     
-    # Выполняем первый опрос
-    await coordinator.async_config_entry_first_refresh()
-    
+    # Сохраняем координатор в hass.data сразу
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     
+    # Загружаем платформы (сенсоры, кнопки и т.д.)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    
+    # Запускаем первый опрос в фоне с задержкой 60 секунд
+    async def delayed_first_refresh():
+        await asyncio.sleep(60)
+        _LOGGER.info("Performing delayed initial refresh for %s", address)
+        try:
+            await coordinator.async_refresh()
+        except Exception as e:
+            _LOGGER.error("Delayed initial refresh failed: %s", e)
+
+    entry.async_create_background_task(
+        hass, 
+        delayed_first_refresh(), 
+        name=f"{DOMAIN}_initial_refresh_{address}"
+    )
+    
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
