@@ -10,6 +10,7 @@ from bleak_retry_connector import establish_connection
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.components.bluetooth import async_ble_device_from_address
+from homeassistant.components import bluetooth
 
 from .const import (
     DOMAIN,
@@ -19,9 +20,9 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-UPDATE_INTERVAL = timedelta(minutes=60)
+UPDATE_INTERVAL = timedelta(hours=1)
 
-# Калибровочные таблицы из старого кода ESPHome
+# Калибровочные таблицы
 TEMP_IN = [1035, 909, 648, 424, 368, 273, 159, 0]
 TEMP_OUT = [68.8, 49.8, 23.7, 6.4, 1.0, -5.5, -20.5, -41.0]
 
@@ -57,6 +58,7 @@ class MCLH09Coordinator(DataUpdateCoordinator):
         """Initialize."""
         self.address = address
         self.name = name
+        self.last_success_time = None 
         super().__init__(
             hass,
             _LOGGER,
@@ -70,12 +72,22 @@ class MCLH09Coordinator(DataUpdateCoordinator):
         if not device:
             raise UpdateFailed(f"Device {self.address} not found")
 
+        # Берем RSSI из рекламных данных (надежнее, чем device.rssi)
+        service_info = bluetooth.async_last_service_info(self.hass, self.address)
+        rssi_val = service_info.rssi if service_info else None
+        if rssi_val is not None:
+            _LOGGER.debug("RSSI from advert: %s", rssi_val)
+
+        data = {}
+        if rssi_val is not None:
+            data["rssi"] = rssi_val
+
         try:
+            # Добавлен таймаут, чтобы не вешать HA, если датчик не отвечает
             client = await establish_connection(
-                BleakClient, device, self.name, max_attempts=3
+                BleakClient, device, self.name, max_attempts=3, timeout=30.0
             )
             
-            data = {}
             try:
                 # Читаем батарею
                 try:
@@ -107,6 +119,10 @@ class MCLH09Coordinator(DataUpdateCoordinator):
 
             finally:
                 await client.disconnect()
+
+            # Сохраняем время успешного обновления
+            from homeassistant.util import dt as dt_util
+            self.last_success_time = dt_util.utcnow()
 
             return data
 
