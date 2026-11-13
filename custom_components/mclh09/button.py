@@ -4,7 +4,6 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import MCLH09Coordinator
@@ -16,24 +15,23 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up MCLH-09 buttons."""
     coordinator: MCLH09Coordinator = hass.data[DOMAIN][entry.entry_id]
     address = entry.data["address"]
-
     async_add_entities([MCLH09RefreshButton(coordinator, address)])
 
 
-class MCLH09RefreshButton(CoordinatorEntity, ButtonEntity):
+class MCLH09RefreshButton(ButtonEntity):
     """Representation of a manual refresh button."""
 
     def __init__(self, coordinator: MCLH09Coordinator, address: str):
-        """Initialize the button."""
-        super().__init__(coordinator)
+        self.coordinator = coordinator
+        self._address = address
         self._attr_name = "Refresh Data"
         self._attr_unique_id = f"{address}_refresh"
         self._attr_icon = "mdi:refresh"
+        # Кнопка всегда доступна
+        self._attr_available = True
         
-        # Привязка к устройству
         self._attr_device_info = {
             "identifiers": {(DOMAIN, address)},
             "name": f"MCLH-09 {address[-5:]}",
@@ -42,6 +40,5 @@ class MCLH09RefreshButton(CoordinatorEntity, ButtonEntity):
         }
 
     async def async_press(self) -> None:
-        """Handle the button press."""
-        _LOGGER.info("Manual update requested")
-        await self.coordinator.async_request_refresh()
+        _LOGGER.info("Manual update requested for %s", self._address)
+        await self.coordinator.async_refresh()
