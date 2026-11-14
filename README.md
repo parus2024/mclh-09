@@ -86,10 +86,12 @@ Make sure your Home Assistant Bluetooth adapter is within range of the sensor. B
 **Temperature or humidity readings look strange.**
 The sensor has built-in calibration tables. If you find the readings inaccurate, you can calibrate the sensor using the commands in `Alert Select` (e.g., `Calibrate Temp`).
 
-**Error `org.bluez.Error.InProgress`.**
-This means the previous BLE connection has not been closed yet. The integration adds a delay before sending commands, but if this persists, simply restart Home Assistant.
+## 📊 Screenshots & video
 
----
+- [screenshot](images/screenshot.png)
+- [dashboard](images/dashboard.png)
+- [YOUTUBE](https://youtu.be/hM67obejF2Q)
+- [RUTUBE](https://rutube.ru/video/b3d5c235215f47a60e9a96bd8c93612f/)
 
 ## ⚠️ Known Limitations
 
